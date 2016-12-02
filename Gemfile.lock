@@ -1,0 +1,60 @@
+PATH
+  remote: .
+  specs:
+    pliny-librato (0.1.0)
+      concurrent-ruby (~> 1.0.2)
+      librato-metrics (~> 2.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    aggregate (0.2.2)
+    byebug (9.0.6)
+    coderay (1.1.1)
+    concurrent-ruby (1.0.2)
+    diff-lcs (1.2.5)
+    faraday (0.10.0)
+      multipart-post (>= 1.2, < 3)
+    librato-metrics (2.0.2)
+      aggregate (~> 0.2.2)
+      faraday
+    method_source (0.8.2)
+    multipart-post (2.0.0)
+    pry (0.10.4)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
+    pry-byebug (3.4.1)
+      byebug (~> 9.0)
+      pry (~> 0.10)
+    rake (10.5.0)
+    rspec (3.5.0)
+      rspec-core (~> 3.5.0)
+      rspec-expectations (~> 3.5.0)
+      rspec-mocks (~> 3.5.0)
+    rspec-core (3.5.4)
+      rspec-support (~> 3.5.0)
+    rspec-expectations (3.5.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.5.0)
+    rspec-mocks (3.5.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.5.0)
+    rspec-support (3.5.0)
+    slop (3.6.0)
+    timecop (0.8.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.13)
+  pliny-librato!
+  pry
+  pry-byebug
+  rake (~> 10.0)
+  rspec (~> 3.3)
+  timecop (~> 0.8.1)
+
+BUNDLED WITH
+   1.13.5
