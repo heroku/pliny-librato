@@ -1,7 +1,8 @@
 require "spec_helper"
 
 RSpec.describe Pliny::Librato::Metrics::Backend do
-  subject(:backend) { described_class.new }
+  subject(:source)  { "myapp.production" }
+  subject(:backend) { described_class.new(source: source) }
 
   describe "#report_counts" do
     let(:async_reporter) { double(_report_counts: true) }
@@ -18,7 +19,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   describe "#async._report_counts" do
     it "reports a single count to librato" do
       expect(Librato::Metrics).to receive(:submit).with(
-        'pliny.foo' => { value: 1, type: :counter, source: nil }
+        'pliny.foo' => { value: 1, type: :counter, source: source }
       )
 
       backend.await._report_counts('pliny.foo' => 1)
@@ -26,8 +27,8 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
 
     it "reports multiple counts to librato" do
       expect(Librato::Metrics).to receive(:submit).with(
-        'pliny.foo' => { value: 1, type: :counter, source: nil },
-        'pliny.bar' => { value: 2, type: :counter, source: nil }
+        'pliny.foo' => { value: 1, type: :counter, source: source },
+        'pliny.bar' => { value: 2, type: :counter, source: source }
       )
 
       backend.await._report_counts('pliny.foo' => 1, 'pliny.bar' => 2)
@@ -50,7 +51,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   describe "#async._report_measures" do
     it "reports a single measure to librato" do
       expect(Librato::Metrics).to receive(:submit).with(
-        'pliny.foo' => { value: 1.002, type: :gauge, source: nil }
+        'pliny.foo' => { value: 1.002, type: :gauge, source: source }
       )
 
       backend.await._report_measures('pliny.foo' => 1.002)
@@ -58,8 +59,8 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
 
     it "reports multiple measures to librato" do
       expect(Librato::Metrics).to receive(:submit).with(
-        'pliny.foo' => { value: 1.5, type: :gauge, source: nil },
-        'pliny.bar' => { value: 2.04, type: :gauge, source: nil }
+        'pliny.foo' => { value: 1.5, type: :gauge, source: source },
+        'pliny.bar' => { value: 2.04, type: :gauge, source: source }
       )
 
       backend.await._report_measures('pliny.foo' => 1.5, 'pliny.bar' => 2.04)
