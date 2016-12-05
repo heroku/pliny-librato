@@ -6,6 +6,11 @@ module Pliny::Librato
     class Backend
       include Concurrent::Async
 
+      def initialize(source: nil)
+        super()
+        @source = source
+      end
+
       def report_counts(counts)
         self.async._report_counts(counts)
       end
@@ -15,20 +20,21 @@ module Pliny::Librato
       end
 
       def _report_counts(counts)
-        ::Librato::Metrics.submit(counters: expand_metrics(counts))
+        ::Librato::Metrics.submit(expand(:counter, counts))
       end
 
       def _report_measures(measures)
-        ::Librato::Metrics.submit(gauges: expand_metrics(measures))
+        ::Librato::Metrics.submit(expand(:gauge, measures))
       end
 
       private
 
-      attr_reader :librato_client
+      attr_reader :librato_client, :source
 
-      def expand_metrics(metrics)
-        metrics.map do |k, v|
-          { name: k, value: v }
+      def expand(type, metrics)
+        metrics.reduce({}) do |mets, (k, v)|
+          mets[k] = { type: type, value: v, source: source }
+          mets
         end
       end
     end
