@@ -23,8 +23,8 @@ Or install it yourself as:
 Add a new initializer `config/initializers/librato.rb`
 
 ```ruby
-Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)  
-Pliny::Metrics.backends << Pliny::Librato::Metrics::Backend.new
+Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
+Pliny::Metrics.backends << Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
 ```
 
 ## Development
