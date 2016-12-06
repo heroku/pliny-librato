@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     pliny-librato (0.1.0)
-      concurrent-ruby (~> 1.0.2)
+      concurrent-ruby (~> 1.0)
       librato-metrics (~> 2.0)
 
 GEM
@@ -57,4 +57,4 @@ DEPENDENCIES
   timecop (~> 0.8.1)
 
 BUNDLED WITH
-   1.13.5
+   1.13.6
