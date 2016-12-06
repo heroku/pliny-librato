@@ -32,7 +32,7 @@ Now `Pliny::Metrics` methods send directly to Librato:
 ```ruby
 Pliny::Metrics.count(:foo, 3)
 Pliny::Metrics.measure(:bar) do
-  // Some stuff you want to time
+  # Some stuff you want to time
 end
 ```
 
