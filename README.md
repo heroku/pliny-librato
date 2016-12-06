@@ -20,11 +20,20 @@ Or install it yourself as:
 
 ## Usage
 
-Add a new initializer `config/initializers/librato.rb`
+Add a new initializer `config/initializers/librato.rb`:
 
 ```ruby
 Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
 Pliny::Metrics.backends << Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
+```
+
+Now `Pliny::Metrics` methods send directly to Librato:
+
+```ruby
+Pliny::Metrics.count(:foo, 3)
+Pliny::Metrics.measure(:bar) do
+  // Some stuff you want to time
+end
 ```
 
 ## Development
