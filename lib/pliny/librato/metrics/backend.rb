@@ -1,5 +1,6 @@
 require "librato/metrics"
 require "concurrent"
+require "pliny/error_reporters"
 
 module Pliny::Librato
   module Metrics
@@ -21,10 +22,14 @@ module Pliny::Librato
 
       def _report_counts(counts)
         ::Librato::Metrics.submit(expand(:counter, counts))
+      rescue => error
+        Pliny::ErrorReporters.notify(error)
       end
 
       def _report_measures(measures)
         ::Librato::Metrics.submit(expand(:gauge, measures))
+      rescue => error
+        Pliny::ErrorReporters.notify(error)
       end
 
       private
