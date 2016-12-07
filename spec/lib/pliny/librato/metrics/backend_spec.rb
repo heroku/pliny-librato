@@ -33,6 +33,14 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
 
       backend.await._report_counts('pliny.foo' => 1, 'pliny.bar' => 2)
     end
+
+    it "reports errors via the error reporter" do
+      error = StandardError.new(message: "Something went wrong")
+      allow(Librato::Metrics).to receive(:submit).and_raise(error)
+      expect(Pliny::ErrorReporters).to receive(:notify).with(error)
+
+      backend.await._report_counts("pliny.boom" => 1)
+    end
   end
 
   describe "#report_measures" do
@@ -45,6 +53,14 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
       )
 
       backend.report_measures('pliny.foo' => 1.002)
+    end
+
+    it "reports errors via the error reporter" do
+      error = StandardError.new(message: "Something went wrong")
+      allow(Librato::Metrics).to receive(:submit).and_raise(error)
+      expect(Pliny::ErrorReporters).to receive(:notify).with(error)
+
+      backend.await._report_measures("pliny.boom" => 1)
     end
   end
 
