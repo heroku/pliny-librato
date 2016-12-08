@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 0.3.0
+
 ### Changed
 
 - All metrics sent to librato will be reported as gauges. This means that
