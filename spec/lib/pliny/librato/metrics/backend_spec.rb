@@ -18,7 +18,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   end
 
   describe "#report_measures" do
-    it "delegates to async._report" do
+    it "delegates to async.report" do
       expect(backend).to receive(:async).and_return(async_reporter)
       expect(async_reporter).to receive(:report).once.with(
         'pliny.foo' => 1.002
