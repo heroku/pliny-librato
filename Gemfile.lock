@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    pliny-librato (0.1.0)
+    pliny-librato (0.2.0)
       concurrent-ruby (~> 1.0)
       librato-metrics (~> 2.0)
       pliny (>= 0.20.0)
@@ -34,7 +34,7 @@ GEM
     minitest (5.10.1)
     multi_json (1.12.1)
     multipart-post (2.0.0)
-    pliny (0.20.0)
+    pliny (0.20.1)
       activesupport (~> 4.1, >= 4.1.0)
       http_accept (~> 0.1, >= 0.1.5)
       multi_json (~> 1.9, >= 1.9.3)
