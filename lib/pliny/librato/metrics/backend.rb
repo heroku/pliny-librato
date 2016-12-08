@@ -13,21 +13,15 @@ module Pliny::Librato
       end
 
       def report_counts(counts)
-        self.async._report_counts(counts)
+        self.async.report(counts)
       end
 
       def report_measures(measures)
-        self.async._report_measures(measures)
+        self.async.report(measures)
       end
 
-      def _report_counts(counts)
-        ::Librato::Metrics.submit(expand(:counter, counts))
-      rescue => error
-        Pliny::ErrorReporters.notify(error)
-      end
-
-      def _report_measures(measures)
-        ::Librato::Metrics.submit(expand(:gauge, measures))
+      def report(metrics)
+        ::Librato::Metrics.submit(serialize(metrics))
       rescue => error
         Pliny::ErrorReporters.notify(error)
       end
@@ -36,9 +30,9 @@ module Pliny::Librato
 
       attr_reader :librato_client, :source
 
-      def expand(type, metrics)
+      def serialize(metrics)
         metrics.reduce({}) do |mets, (k, v)|
-          mets[k] = { type: type, value: v, source: source }
+          mets[k] = { type: :gauge, value: v, source: source }
           mets
         end
       end
