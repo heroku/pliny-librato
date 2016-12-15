@@ -27,7 +27,8 @@ Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
 Pliny::Metrics.backends << Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
 ```
 
-Now `Pliny::Metrics` methods send directly to Librato:
+Now `Pliny::Metrics` methods will build a queue and automatically send metrics
+to Librato.
 
 ```ruby
 Pliny::Metrics.count(:foo, 3)
@@ -35,6 +36,9 @@ Pliny::Metrics.measure(:bar) do
   # Some stuff you want to time
 end
 ```
+
+By default, it will send queued metrics every minute, or whenever the
+queue reaches 1000 metrics. These settings can be configured on initialization.
 
 ## Development
 
@@ -44,4 +48,4 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/pliny-librato.
+Bug reports and pull requests are welcome on GitHub at https://github.com/heroku/pliny-librato.
