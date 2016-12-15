@@ -1,58 +1,60 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Pliny::Librato::Metrics::Backend do
-  subject(:source)     { "myapp.production" }
-  subject(:backend)    { described_class.new(source: source) }
-  let(:async_reporter) { double("AsyncReporter", report: true) }
+  let(:source)   { 'myapp.production' }
+  let(:interval) { 1 }
+  let(:count)    { 5 }
+  let(:queue)    { double('queue') }
+  let(:metrics)  { { 'foo.bar' => 1, baz: 2 } }
 
+  subject(:backend) do
+    described_class.new(
+      count:    count,
+      interval: interval,
+      source:   source,
+      queue:    queue
+    )
+  end
 
-  describe "#report_counts" do
-    it "delegates to async.report" do
-      expect(backend).to receive(:async).and_return(async_reporter)
-      expect(async_reporter).to receive(:report).once.with(
-        'pliny.foo' => 1
-      )
+  describe '#initialize' do
+    context 'without a provided queue' do
+      let(:queue) { nil }
 
-      backend.report_counts('pliny.foo' => 1)
+      it 'creates a Librato::Metrics::Queue' do
+        expect(Librato::Metrics::Queue).to receive(:new).with(
+          autosubmit_count:    count,
+          autosubmit_interval: interval,
+          source:              source
+        ).and_call_original
+
+        expect(backend.queue).to be_an_instance_of(Librato::Metrics::Queue)
+      end
     end
   end
 
-  describe "#report_measures" do
-    it "delegates to async.report" do
-      expect(backend).to receive(:async).and_return(async_reporter)
-      expect(async_reporter).to receive(:report).once.with(
-        'pliny.foo' => 1.002
-      )
-
-      backend.report_measures('pliny.foo' => 1.002)
+  shared_examples 'a metrics reporter' do
+    it 'delegates to queue.add' do
+      expect(queue).to receive(:add).with(metrics)
+      backend.send(method, metrics)
     end
 
-  end
+    it 'reports errors' do
+      error = StandardError.new(message: 'Something went wrong')
+      allow(queue).to receive(:add).and_raise(error)
 
-  describe "#report" do
-    it "reports a single count to librato" do
-      expect(Librato::Metrics).to receive(:submit).with(
-        'pliny.foo' => { value: 1, type: :gauge, source: source }
-      )
-
-      backend.report('pliny.foo' => 1)
-    end
-
-    it "reports multiple counts to librato" do
-      expect(Librato::Metrics).to receive(:submit).with(
-        'pliny.foo' => { value: 1, type: :gauge, source: source },
-        'pliny.bar' => { value: 2, type: :gauge, source: source }
-      )
-
-      backend.report('pliny.foo' => 1, 'pliny.bar' => 2)
-    end
-
-    it "reports errors via the error reporter" do
-      error = StandardError.new(message: "Something went wrong")
-      allow(Librato::Metrics).to receive(:submit).and_raise(error)
       expect(Pliny::ErrorReporters).to receive(:notify).with(error)
 
-      backend.report("pliny.boom" => 1)
+      backend.send(method, metrics)
     end
+  end
+
+  describe '#report_counts' do
+    let(:method) { :report_counts }
+    it_should_behave_like 'a metrics reporter'
+  end
+
+  describe '#report_measures' do
+    let(:method) { :report_measures }
+    it_should_behave_like 'a metrics reporter'
   end
 end
