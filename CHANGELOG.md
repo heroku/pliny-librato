@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- The backend now queues metrics and sends in batches
+- You can specify the `count` and `interval` for batch sends when initializing
+  the backend.
+
+### Removed
+
+- `concurrent-ruby` is no longer a dependency.
+
 ## 0.3.0
 
 ### Changed
@@ -15,4 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   "count#" entries, which are also submitted as gauges.
 
 ## 0.2.0
+
+### Changed
+
 - Catch and report errors in async calls to the Librato API
