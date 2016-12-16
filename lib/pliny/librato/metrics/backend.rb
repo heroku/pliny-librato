@@ -10,7 +10,7 @@ module Pliny
         attr_reader :queue
 
         def initialize(source: nil, interval: 60, count: 1000, queue: nil)
-          @queue = queue || Librato::Metrics::Queue.new(
+          @queue = queue || ::Librato::Metrics::Queue.new(
             source:              source,
             autosubmit_interval: interval,
             autosubmit_count:    count
