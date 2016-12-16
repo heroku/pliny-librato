@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## 0.4.0
+
 ### Added
 
 - The backend now queues metrics and sends in batches
