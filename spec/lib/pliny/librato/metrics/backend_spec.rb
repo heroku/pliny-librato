@@ -16,8 +16,6 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
     )
   end
 
-  after { backend.shutdown }
-
   describe '#initialize' do
     subject(:backend) do
       described_class.new(
@@ -53,6 +51,11 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
     before do
       allow(librato_queue).to receive(:submit)
       allow(librato_queue).to receive(:add)
+      backend.start
+    end
+
+    after do
+      backend.stop
     end
 
     it 'adds the metrics the librato_queue' do
@@ -71,11 +74,13 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
     it_should_behave_like 'a metrics reporter'
   end
 
-  describe '#shutdown' do
+  describe '#stop' do
     it 'flushes the librato queue' do
+      backend.start
+
       expect(librato_queue).to receive(:submit)
 
-      backend.shutdown
+      backend.stop
     end
   end
 end

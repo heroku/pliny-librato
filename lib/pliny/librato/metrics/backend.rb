@@ -7,7 +7,7 @@ module Pliny
       # Implements the Pliny::Metrics.backends API. Puts any metrics sent
       # from Pliny::Metrics onto a queue that gets submitted in batches.
       class Backend
-        POISON_PILL = :'❨╯°□°❩╯︵┻━┻'.freeze
+        POISON_PILL = :'❨╯°□°❩╯︵┻━┻'
 
         def initialize(source: nil, interval: 10, count: 500, **opts)
           @metrics_queue = opts.fetch(:metrics_queue, Queue.new)
@@ -17,8 +17,6 @@ module Pliny
                                         autosubmit_interval: interval,
                                         autosubmit_count:    count
                                       ))
-
-          start_thread
         end
 
         def report_counts(counts)
@@ -29,7 +27,13 @@ module Pliny
           metrics_queue.push(measures)
         end
 
-        def shutdown
+        def start
+          start_thread
+          Signal.trap('TERM') { stop }
+          self
+        end
+
+        def stop
           metrics_queue.push(POISON_PILL)
           thread.join
         end
@@ -46,6 +50,7 @@ module Pliny
             end
           end
         end
+
 
         def process(msg)
           if msg == POISON_PILL
