@@ -8,6 +8,7 @@ module Pliny
       # from Pliny::Metrics onto a queue that gets submitted in batches.
       class Backend
         POISON_PILL = :'❨╯°□°❩╯︵┻━┻'.freeze
+        DONE = :done
 
         def initialize(source: nil, interval: 10, count: 500)
           @source   = source
@@ -27,7 +28,7 @@ module Pliny
 
         def shutdown
           queue.push(POISON_PILL)
-          thread
+          thread.join
         end
 
         private
@@ -37,24 +38,24 @@ module Pliny
         def start_thread
           @thread = Thread.new do
             loop do
-              begin
-                msg = queue.pop
-
-                if msg == POISON_PILL
-                  librato_queue.submit
-                  break
-                end
-
-                librato_queue.add(msg)
-              rescue => error
-                Pliny::ErrorReporters.notify(error)
-              end
+              break if process(queue.pop) == DONE
             end
           end
         end
 
+        def process(msg)
+          if msg == POISON_PILL
+            librato_queue.submit
+            return DONE
+          end
+
+          librato_queue.add(msg)
+        rescue => error
+          Pliny::ErrorReporters.notify(error)
+        end
+
         def librato_queue
-          @librato_queue ||= ::Librato::Metrics::Queue.new(
+          Thread.current[:librato_queue] ||= ::Librato::Metrics::Queue.new(
             source:              source,
             autosubmit_interval: interval,
             autosubmit_count:    count
