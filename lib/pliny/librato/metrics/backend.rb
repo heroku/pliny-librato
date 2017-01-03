@@ -51,7 +51,6 @@ module Pliny
           end
         end
 
-
         def process(msg)
           if msg == POISON_PILL
             flush_librato
@@ -63,13 +62,15 @@ module Pliny
         end
 
         def enqueue_librato(msg)
-          librato_queue.add(msg)
-        rescue => error
-          Pliny::ErrorReporters.notify(error)
+          with_error_report { librato_queue.add(msg) }
         end
 
         def flush_librato
-          librato_queue.submit
+          with_error_report { librato_queue.submit }
+        end
+
+        def with_error_report
+          yield
         rescue => error
           Pliny::ErrorReporters.notify(error)
         end
