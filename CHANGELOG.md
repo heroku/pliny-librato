@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Metrics are now reported to Librato from within a thread to prevent blocking
+
+### Changed
+
+- The backend must be started with `#start`. For example
+  `Backend.new(opts).start`.
+
 ## 0.4.0
 
 ### Added
