@@ -8,7 +8,6 @@ module Pliny
       # from Pliny::Metrics onto a queue that gets submitted in batches.
       class Backend
         POISON_PILL = :'❨╯°□°❩╯︵┻━┻'.freeze
-        DONE = :done
 
         def initialize(source: nil, interval: 10, count: 500)
           @source   = source
@@ -36,20 +35,32 @@ module Pliny
         attr_reader :source, :interval, :count, :thread
 
         def start_thread
-          @thread = Thread.new do
+          @thread = Thread.new 'pliny-librato-metrics-processor' do
             loop do
-              break if process(queue.pop) == DONE
+              message = queue.pop
+              break unless process(message)
             end
           end
         end
 
-        def process(msg)
-          if msg == POISON_PILL
-            librato_queue.submit
-            return DONE
+        def process(message)
+          if message == POISON_PILL
+            flush_librato
+            false
+          else
+            enqueue_librato(message)
+            true
           end
+        end
 
+        def enqueue_librato(msg)
           librato_queue.add(msg)
+        rescue => error
+          Pliny::ErrorReporters.notify(error)
+        end
+
+        def flush_librato
+          librato_queue.submit
         rescue => error
           Pliny::ErrorReporters.notify(error)
         end
