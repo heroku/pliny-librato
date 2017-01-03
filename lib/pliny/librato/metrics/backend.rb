@@ -10,7 +10,7 @@ module Pliny
         POISON_PILL = :'❨╯°□°❩╯︵┻━┻'.freeze
 
         def initialize(source: nil, interval: 10, count: 500, **opts)
-          @metrics_queue = opts.fetch(:message_queue, Queue.new)
+          @metrics_queue = opts.fetch(:metrics_queue, Queue.new)
           @librato_queue = opts.fetch(:librato_queue,
                                       ::Librato::Metrics::Queue.new(
                                         source:              source,

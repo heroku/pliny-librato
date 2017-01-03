@@ -1,25 +1,34 @@
 require 'spec_helper'
 
 RSpec.describe Pliny::Librato::Metrics::Backend do
-  let(:source)   { 'myapp.production' }
-  let(:interval) { 1 }
-  let(:count)    { 5 }
-  let(:queue)    { double('queue') }
-  let(:metrics)  { { 'foo.bar' => 1, baz: 2 } }
+  let(:source)        { 'myapp.production' }
+  let(:interval)      { 1 }
+  let(:count)         { 5 }
+  let(:metrics_queue) { double('metrics-queue') }
+  let(:librato_queue) { double('librato-queue') }
+  let(:metrics)       { { 'foo.bar' => 1, baz: 2 } }
+
 
   subject(:backend) do
     described_class.new(
-      count:    count,
-      interval: interval,
-      source:   source,
-      queue:    queue
+      count:         count,
+      interval:      interval,
+      source:        source,
+      metrics_queue: metrics_queue,
+      librato_queue: librato_queue
     )
   end
 
   describe '#initialize' do
-    context 'without a provided queue' do
-      let(:queue) { nil }
+    subject(:backend) do
+      described_class.new(
+        count:         count,
+        interval:      interval,
+        source:        source
+      )
+    end
 
+    context 'without a provided librato_queue' do
       it 'creates a Librato::Metrics::Queue' do
         expect(Librato::Metrics::Queue).to receive(:new).with(
           autosubmit_count:    count,
@@ -27,23 +36,23 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
           source:              source
         ).and_call_original
 
-        expect(backend.queue).to be_an_instance_of(Librato::Metrics::Queue)
+        expect(backend.send(:librato_queue))
+          .to be_an_instance_of(Librato::Metrics::Queue)
+      end
+    end
+
+    context 'without a provided metrics_queue' do
+      it 'creates a new Queue' do
+        expect(Queue).to receive(:new).and_call_original
+
+        expect(backend.send(:metrics_queue)).to be_an_instance_of(Queue)
       end
     end
   end
 
   shared_examples 'a metrics reporter' do
-    it 'delegates to queue.add' do
-      expect(queue).to receive(:add).with(metrics)
-      backend.send(method, metrics)
-    end
-
-    it 'reports errors' do
-      error = StandardError.new(message: 'Something went wrong')
-      allow(queue).to receive(:add).and_raise(error)
-
-      expect(Pliny::ErrorReporters).to receive(:notify).with(error)
-
+    it 'delegates to metrics_queue.push' do
+      expect(metrics_queue).to receive(:push).with(metrics)
       backend.send(method, metrics)
     end
   end
