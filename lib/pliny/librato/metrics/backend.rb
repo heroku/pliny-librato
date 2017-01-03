@@ -41,18 +41,18 @@ module Pliny
         def start_thread
           @thread = Thread.new 'pliny-librato-metrics-processor' do
             loop do
-              message = queue.pop
-              break unless process(message)
+              msg = metrics_queue.pop
+              break unless process(msg)
             end
           end
         end
 
-        def process(message)
-          if message == POISON_PILL
+        def process(msg)
+          if msg == POISON_PILL
             flush_librato
             false
           else
-            enqueue_librato(message)
+            enqueue_librato(msg)
             true
           end
         end

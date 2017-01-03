@@ -4,20 +4,19 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   let(:source)        { 'myapp.production' }
   let(:interval)      { 1 }
   let(:count)         { 5 }
-  let(:metrics_queue) { double('metrics-queue') }
   let(:librato_queue) { double('librato-queue') }
   let(:metrics)       { { 'foo.bar' => 1, baz: 2 } }
-
 
   subject(:backend) do
     described_class.new(
       count:         count,
       interval:      interval,
       source:        source,
-      metrics_queue: metrics_queue,
       librato_queue: librato_queue
     )
   end
+
+  after { backend.shutdown }
 
   describe '#initialize' do
     subject(:backend) do
@@ -51,8 +50,13 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   end
 
   shared_examples 'a metrics reporter' do
-    it 'delegates to metrics_queue.push' do
-      expect(metrics_queue).to receive(:push).with(metrics)
+    before do
+      allow(librato_queue).to receive(:submit)
+      allow(librato_queue).to receive(:add)
+    end
+
+    it 'adds the metrics the librato_queue' do
+      expect(librato_queue).to receive(:add).with(metrics)
       backend.send(method, metrics)
     end
   end
@@ -65,5 +69,13 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   describe '#report_measures' do
     let(:method) { :report_measures }
     it_should_behave_like 'a metrics reporter'
+  end
+
+  describe '#shutdown' do
+    it 'flushes the librato queue' do
+      expect(librato_queue).to receive(:submit)
+
+      backend.shutdown
+    end
   end
 end
