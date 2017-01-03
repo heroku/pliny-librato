@@ -7,70 +7,54 @@ module Pliny
       # Implements the Pliny::Metrics.backends API. Puts any metrics sent
       # from Pliny::Metrics onto a queue that gets submitted in batches.
       class Backend
-        TERMINATE = "TERMINATE".freeze
+        POISON_PILL = :'❨╯°□°❩╯︵┻━┻'.freeze
 
-        def initialize(source: nil, interval: 60, count: 500)
+        def initialize(source: nil, interval: 10, count: 500)
           @source   = source
           @interval = interval
           @count    = count
 
-          process_in_thread
-          flush_on_shutdown
+          start_thread
         end
 
         def report_counts(counts)
-          report(counts)
+          queue.push(counts)
         end
 
         def report_measures(measures)
-          report(measures)
+          queue.push(measures)
+        end
+
+        def shutdown
+          queue.push(POISON_PILL)
+          thread
         end
 
         private
 
         attr_reader :source, :interval, :count, :thread
 
-        def report(metrics)
-          queue.push([metrics, false])
-        end
-
-        def process_in_thread
+        def start_thread
           @thread = Thread.new do
-            librato_queue = initialize_librato_queue
-
             loop do
               begin
-                metrics, terminate = queue.pop
-                puts metrics, terminate
+                msg = queue.pop
 
-                librato_queue.add(metrics) if metrics
-
-                if terminate
+                if msg == POISON_PILL
                   librato_queue.submit
-                  thread.exit
+                  break
                 end
+
+                librato_queue.add(msg)
               rescue => error
-                puts error
                 Pliny::ErrorReporters.notify(error)
               end
             end
-
-          end
-
-          # TODO: this is not called when we're already inside a thread.
-          # This is pretty problematic since Puma and Tonitrus both use
-          # threads.
-          Signal.trap('TERM') do
-            # Send a signal to submit any pending metrics and then wait for it
-            # to exit
-            queue.push([nil, true])
-            thread.join
-            exit
           end
         end
 
-        def initialize_librato_queue
-          ::Librato::Metrics::Queue.new(
+        def librato_queue
+          @librato_queue ||= ::Librato::Metrics::Queue.new(
             source:              source,
             autosubmit_interval: interval,
             autosubmit_count:    count
