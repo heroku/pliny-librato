@@ -2,6 +2,10 @@
 
 A [Librato](https://librato.com) metrics reporter backend for [pliny](https://github.com/interagent/pliny).
 
+
+This backend will push reported metrics onto a queue, then periodically
+submit them asynchronously.
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -24,7 +28,9 @@ Add a new initializer `config/initializers/librato.rb`:
 
 ```ruby
 Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
-Pliny::Metrics.backends << Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
+librato_backend = Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
+librato_backend.start
+Pliny::Metrics.backends << librato_backend
 ```
 
 Now `Pliny::Metrics` methods will build a queue and automatically send metrics
