@@ -9,14 +9,10 @@ module Pliny
       class Backend
         POISON_PILL = :'❨╯°□°❩╯︵┻━┻'
 
-        def initialize(source: nil, interval: 10, count: 500, **opts)
-          @metrics_queue = opts.fetch(:metrics_queue, Queue.new)
-          @librato_queue = opts.fetch(:librato_queue,
-                                      ::Librato::Metrics::Queue.new(
-                                        source:              source,
-                                        autosubmit_interval: interval,
-                                        autosubmit_count:    count
-                                      ))
+        def initialize(source: nil, interval: 10, count: 500)
+          @source   = source
+          @interval = interval
+          @count    = count
         end
 
         def report_counts(counts)
@@ -40,10 +36,10 @@ module Pliny
 
         private
 
-        attr_reader :librato_queue, :metrics_queue, :thread
+        attr_reader :source, :interval, :count, :thread
 
         def start_thread
-          @thread = Thread.new 'pliny-librato-metrics-processor' do
+          @thread = Thread.new do
             loop do
               msg = metrics_queue.pop
               break unless process(msg)
@@ -73,6 +69,18 @@ module Pliny
           yield
         rescue => error
           Pliny::ErrorReporters.notify(error)
+        end
+
+        def metrics_queue
+          @metrics_queue ||= Queue.new
+        end
+
+        def librato_queue
+          @librato_queue ||= ::Librato::Metrics::Queue.new(
+            source:              source,
+            autosubmit_interval: interval,
+            autosubmit_count:    count
+          )
         end
       end
     end
