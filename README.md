@@ -2,6 +2,10 @@
 
 A [Librato](https://librato.com) metrics reporter backend for [pliny](https://github.com/interagent/pliny).
 
+
+This backend will push reported metrics onto a queue, then periodically
+submit them asynchronously.
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -24,7 +28,9 @@ Add a new initializer `config/initializers/librato.rb`:
 
 ```ruby
 Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
-Pliny::Metrics.backends << Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
+librato_backend = Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
+librato_backend.start
+Pliny::Metrics.backends << librato_backend
 ```
 
 Now `Pliny::Metrics` methods will build a queue and automatically send metrics
@@ -39,6 +45,28 @@ end
 
 By default, it will send queued metrics every minute, or whenever the
 queue reaches 1000 metrics. These settings can be configured on initialization.
+
+## Shutdown
+By default, any unsubmitted metrics on the queue will not be sent at shutdown. It is the responsibility of the caller to trigger this.
+
+```ruby
+# In the main process
+Signal.trap('TERM') do
+  librato_backend.stop
+end
+
+# e.g. in Puma
+on_worker_shutdown do
+  librato_backend.stop
+end
+
+# e.g. in Sidekiq
+Sidekiq.configure_server do |config|
+  config.on(:shutdown) do
+    librato_backend.stop
+  end
+end
+```
 
 ## Development
 
