@@ -46,6 +46,28 @@ end
 By default, it will send queued metrics every minute, or whenever the
 queue reaches 1000 metrics. These settings can be configured on initialization.
 
+## Shutdown
+By default, any unsubmitted metrics on the queue will not be sent at shutdown. It is the responsibility of the caller to trigger this.
+
+```ruby
+# In the main process
+Signal.trap('TERM') do
+  librato_backend.stop
+end
+
+# e.g. in Puma
+on_worker_shutdown do
+  librato_backend.stop
+end
+
+# e.g. in Sidekiq
+Sidekiq.configure_server do |config|
+  config.on(:shutdown) do
+    librato_backend.stop
+  end
+end
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
