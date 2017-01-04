@@ -51,7 +51,7 @@ By default, any unsubmitted metrics on the queue will not be sent at shutdown. I
 
 ```ruby
 # In the main process
-Signal.trap('TERM') do
+Kernel.on_exit do
   librato_backend.stop
 end
 
