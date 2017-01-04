@@ -25,7 +25,6 @@ module Pliny
 
         def start
           start_thread
-          Signal.trap('TERM') { stop }
           self
         end
 
