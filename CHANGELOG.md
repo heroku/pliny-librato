@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## 0.5.0
 
 ### Added
 
@@ -12,8 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- The backend must be started with `#start`. For example
-  `Backend.new(opts).start`.
+- The backend must be started with `#start` and stopped with `#stop`. For example
+  `backend = Backend.new(opts).start`, `backend.stop`.
 
 ## 0.4.0
 
