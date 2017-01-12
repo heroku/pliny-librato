@@ -24,50 +24,56 @@ module Pliny
         end
 
         def start
-          start_thread
+          start_counter
+          start_timer
           self
         end
 
         def stop
           metrics_queue.push(POISON_PILL)
-          thread.join
+          timer.terminate
+          counter.join
+          flush_librato
         end
 
         private
 
-        attr_reader :source, :interval, :count, :thread
+        attr_reader :source, :interval, :count, :timer, :counter
 
-        def start_thread
-          @thread = Thread.new do
+        def start_timer
+          @timer = Thread.new('pliny-librato-timer') do
             loop do
-              msg = metrics_queue.pop
-              break unless process(msg)
+              sleep interval
+              flush_librato
             end
           end
         end
 
-        def process(msg)
-          if msg == POISON_PILL
-            flush_librato
-            false
-          else
-            enqueue_librato(msg)
-            true
+        def start_counter
+          @counter = Thread.new('pliny-librato-counter') do
+            loop do
+              msg = metrics_queue.pop
+              msg == POISON_PILL ? break : enqueue_librato(msg)
+            end
           end
         end
 
         def enqueue_librato(msg)
-          with_error_report { librato_queue.add(msg) }
+          sync { librato_queue.add(msg) }
         end
 
         def flush_librato
-          with_error_report { librato_queue.submit }
+          sync { librato_queue.submit }
         end
 
-        def with_error_report
-          yield
+        def sync(&block)
+          mutex.synchronize(&block)
         rescue => error
           Pliny::ErrorReporters.notify(error)
+        end
+
+        def mutex
+          @mutex ||= Mutex.new
         end
 
         def metrics_queue
@@ -76,9 +82,8 @@ module Pliny
 
         def librato_queue
           @librato_queue ||= ::Librato::Metrics::Queue.new(
-            source:              source,
-            autosubmit_interval: interval,
-            autosubmit_count:    count
+            source:           source,
+            autosubmit_count: count
           )
         end
       end

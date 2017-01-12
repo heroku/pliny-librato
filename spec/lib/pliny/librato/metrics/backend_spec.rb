@@ -15,13 +15,11 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
     )
   end
 
-
   describe '#initialize' do
     it 'creates a Librato::Metrics::Queue' do
       expect(Librato::Metrics::Queue).to receive(:new).with(
-        autosubmit_count:    count,
-        autosubmit_interval: interval,
-        source:              source
+        autosubmit_count: count,
+        source:           source
       ).and_call_original
 
       expect(backend.send(:librato_queue))
@@ -64,14 +62,23 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   end
 
   describe '#start' do
+    before do
+      allow(Thread).to receive(:new).and_call_original
+    end
+
     after do
       backend.stop
     end
 
-    it 'creates a new thread' do
+    it 'creates a new counter thread' do
+      backend.start
+      expect(backend.send(:counter)).to be_a(Thread)
+    end
+
+    it 'creates a new timer thread' do
       expect(Thread).to receive(:new).and_call_original
       backend.start
-      expect(backend.send(:thread)).to be_a(Thread)
+      expect(backend.send(:timer)).to be_a(Thread)
     end
   end
 
