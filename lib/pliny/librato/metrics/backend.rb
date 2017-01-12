@@ -41,7 +41,7 @@ module Pliny
         attr_reader :source, :interval, :count, :timer, :counter
 
         def start_timer
-          @timer = Thread.new('pliny-librato-timer') do
+          @timer = Thread.new do
             loop do
               sleep interval
               flush_librato
@@ -50,7 +50,7 @@ module Pliny
         end
 
         def start_counter
-          @counter = Thread.new('pliny-librato-counter') do
+          @counter = Thread.new do
             loop do
               msg = metrics_queue.pop
               msg == POISON_PILL ? break : enqueue_librato(msg)
