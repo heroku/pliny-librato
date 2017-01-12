@@ -64,6 +64,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   describe '#start' do
     before do
       allow(Thread).to receive(:new).and_call_original
+      backend.start
     end
 
     after do
@@ -71,13 +72,10 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
     end
 
     it 'creates a new counter thread' do
-      backend.start
       expect(backend.send(:counter)).to be_a(Thread)
     end
 
     it 'creates a new timer thread' do
-      expect(Thread).to receive(:new).and_call_original
-      backend.start
       expect(backend.send(:timer)).to be_a(Thread)
     end
   end
@@ -91,6 +89,22 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
     it 'flushes the librato queue' do
       expect(librato_queue).to receive(:submit)
       backend.stop
+    end
+  end
+
+  describe '#timer' do
+    let(:interval) { 0.05 }
+    let(:count)    { 500 }
+
+    before do
+      allow(backend).to receive(:librato_queue).and_return(librato_queue)
+      allow(librato_queue).to receive(:submit)
+      backend.start
+    end
+
+    it 'periodically flushes the queue' do
+      sleep 0.1
+      expect(librato_queue).to have_received(:submit).at_least(1).times
     end
   end
 end
