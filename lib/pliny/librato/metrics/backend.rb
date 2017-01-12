@@ -9,7 +9,7 @@ module Pliny
       class Backend
         POISON_PILL = :'❨╯°□°❩╯︵┻━┻'
 
-        def initialize(source: nil, interval: 10, count: 500)
+        def initialize(source: nil, interval: 60, count: 500)
           @source   = source
           @interval = interval
           @count    = count
