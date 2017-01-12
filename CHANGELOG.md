@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 0.5.1
+
 ### Changed
 
 - The default submission interval is now 60 seconds for consistency with
