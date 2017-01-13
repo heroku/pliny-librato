@@ -32,7 +32,8 @@ module Pliny
 
         def stop
           metrics_queue.push(POISON_PILL)
-          timer.terminate
+          # Ensure timer is not running when we terminate it
+          sync { timer.terminate }
           counter.join
           flush_librato
         end
