@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Fixed
+
+- Removed potential deadlock when stopping the backend.
+
+### Changed
+
+- `Backend#stop` can no longer be called from within a `Signal.trap` block.
+
 ## 0.5.1
 
 ### Changed

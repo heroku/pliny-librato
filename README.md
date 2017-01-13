@@ -47,12 +47,14 @@ By default, it will send queued metrics every minute, and anytime the
 queue reaches 500 metrics. These settings can be configured on initialization.
 
 ## Shutdown
-By default, any unsubmitted metrics on the queue will not be sent at shutdown. 
+By default, any unsubmitted metrics on the queue will not be sent at shutdown.
 It is the responsibility of the caller to trigger this.
+
+**Note**: `#stop` will not work with signal traps, as mutexes can't be obtained within traps.
 
 ```ruby
 # In the main process
-Kernel.on_exit do
+Kernel.at_exit do
   librato_backend.stop
 end
 
