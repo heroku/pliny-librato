@@ -10,10 +10,13 @@ module Pliny
         POISON_PILL = :'❨╯°□°❩╯︵┻━┻'
 
         def initialize(source: nil, interval: 60, count: 500)
-          @source   = source
-          @interval = interval
-          @count    = count
-          @mutex    = Mutex.new
+          @interval      = interval
+          @mutex         = Mutex.new
+          @metrics_queue = Queue.new
+          @librato_queue = ::Librato::Metrics::Queue.new(
+            source:           source,
+            autosubmit_count: count
+          )
         end
 
         def report_counts(counts)
@@ -40,7 +43,7 @@ module Pliny
 
         private
 
-        attr_reader :source, :interval, :count, :timer, :counter
+        attr_reader :interval, :timer, :counter, :metrics_queue, :librato_queue
 
         def start_timer
           @timer = Thread.new do
@@ -72,17 +75,6 @@ module Pliny
           @mutex.synchronize(&block)
         rescue => error
           Pliny::ErrorReporters.notify(error)
-        end
-
-        def metrics_queue
-          @metrics_queue ||= Queue.new
-        end
-
-        def librato_queue
-          @librato_queue ||= ::Librato::Metrics::Queue.new(
-            source:           source,
-            autosubmit_count: count
-          )
         end
       end
     end
