@@ -50,6 +50,8 @@ queue reaches 500 metrics. These settings can be configured on initialization.
 By default, any unsubmitted metrics on the queue will not be sent at shutdown.
 It is the responsibility of the caller to trigger this.
 
+**Note**: `#stop` will not work with signal traps, as mutexes can't be obtained within traps.
+
 ```ruby
 # In the main process
 Kernel.at_exit do
