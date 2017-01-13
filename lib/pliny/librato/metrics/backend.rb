@@ -13,6 +13,7 @@ module Pliny
           @source   = source
           @interval = interval
           @count    = count
+          @mutex    = Mutex.new
         end
 
         def report_counts(counts)
@@ -67,13 +68,9 @@ module Pliny
         end
 
         def sync(&block)
-          mutex.synchronize(&block)
+          @mutex.synchronize(&block)
         rescue => error
           Pliny::ErrorReporters.notify(error)
-        end
-
-        def mutex
-          @mutex ||= Mutex.new
         end
 
         def metrics_queue
