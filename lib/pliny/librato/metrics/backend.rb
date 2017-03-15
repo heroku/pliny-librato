@@ -56,7 +56,7 @@ module Pliny
         def flush_librato
           sync do
             counter_cache.flush_to(librato_queue)
-            librato_queue.merge!(aggregator)
+            librato_queue.merge!(aggregator) unless aggregator.empty?
             librato_queue.submit unless librato_queue.empty?
             aggregator.clear
           end
