@@ -63,6 +63,7 @@ module Pliny
             librato_queue.merge!(aggregator)
             aggregator.clear
           end
+          librato_queue.submit
         end
 
         def sync(&block)
