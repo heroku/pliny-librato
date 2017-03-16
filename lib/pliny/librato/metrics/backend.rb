@@ -61,7 +61,6 @@ module Pliny
           sync do
             counter_cache.flush_to(librato_queue)
             librato_queue.merge!(aggregator)
-            librato_queue.submit
             aggregator.clear
           end
         end
