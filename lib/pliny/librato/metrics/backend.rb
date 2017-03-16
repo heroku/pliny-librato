@@ -8,15 +8,12 @@ module Pliny
       # Implements the Pliny::Metrics.backends API. Puts any metrics sent
       # from Pliny::Metrics onto a queue that gets submitted in batches.
       class Backend
-        def initialize(source: nil, interval: 60, count: 500)
+        def initialize(source: nil, interval: 60)
           @interval      = interval
           @mutex         = Mutex.new
           @counter_cache = ::Librato::Collector::CounterCache.new(default_tags: nil)
           @aggregator    = ::Librato::Metrics::Aggregator.new
-          @librato_queue = ::Librato::Metrics::Queue.new(
-            source:           source,
-            autosubmit_count: count
-          )
+          @librato_queue = ::Librato::Metrics::Queue.new(source: source)
         end
 
         def report_counts(counts)
@@ -61,9 +58,9 @@ module Pliny
           sync do
             counter_cache.flush_to(librato_queue)
             librato_queue.merge!(aggregator)
+            librato_queue.submit
             aggregator.clear
           end
-          librato_queue.submit
         end
 
         def sync(&block)
