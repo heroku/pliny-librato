@@ -20,8 +20,10 @@ module Pliny
         end
 
         def report_counts(counts)
-          counts.each do |name, val|
-            counter_cache.increment(name, val)
+          sync do
+            counts.each do |name, val|
+              counter_cache.increment(name, val)
+            end
           end
         end
 
