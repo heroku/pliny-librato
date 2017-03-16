@@ -44,7 +44,7 @@ module Pliny
 
         private
 
-        attr_reader :interval, :timer, :counter, :counter_cache, :aggregator, :librato_queue
+        attr_reader :interval, :timer, :counter_cache, :aggregator, :librato_queue
 
         def start_timer
           @timer = Thread.new do
