@@ -60,8 +60,10 @@ module Pliny
             counter_cache.flush_to(librato_queue)
             $stderr.puts "pliny-librato: aggregator being merged: %s" % aggregator.queued.inspect
             librato_queue.merge!(aggregator)
-            $stderr.puts "pliny-librato: librato queue being submitted: %s" % librato_queue.queued.inspect
-            librato_queue.submit
+            unless librato_queue.empty?
+              $stderr.puts "pliny-librato: librato queue being submitted: %s" % librato_queue.queued.inspect
+              librato_queue.submit
+            end
             aggregator.clear
           end
         end
