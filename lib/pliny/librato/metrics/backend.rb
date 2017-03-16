@@ -26,7 +26,9 @@ module Pliny
         end
 
         def report_measures(measures)
-          aggregator.add(measures)
+          sync do
+            aggregator.add(measures)
+          end
         end
 
         def start
