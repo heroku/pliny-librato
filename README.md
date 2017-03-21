@@ -27,10 +27,15 @@ Or install it yourself as:
 Add a new initializer `config/initializers/librato.rb`:
 
 ```ruby
-Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
-librato_backend = Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
-librato_backend.start
-Pliny::Metrics.backends << librato_backend
+if Config.librato_email && Config.librato_key
+  Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
+  Pliny::Metrics.backends = [Pliny::Librato::Metrics::Backend.new(
+    source: "#{Config.app_name}.#{Config.app_env}",
+    interval: 30
+  ).tap(&:start)]
+else
+  Pliny::Metrics.backends = [Pliny::Metrics::Backends::Logger]
+end
 ```
 
 Now `Pliny::Metrics` methods will build a queue and automatically send metrics
