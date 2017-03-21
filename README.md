@@ -24,7 +24,7 @@ Or install it yourself as:
 
 ## Usage
 
-Add a new initializer `config/initializers/librato.rb`:
+Update (or add) your metrics initializer `config/initializers/metrics.rb` with:
 
 ```ruby
 if Config.librato_email && Config.librato_key
