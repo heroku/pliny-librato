@@ -48,8 +48,7 @@ Pliny::Metrics.measure(:bar) do
 end
 ```
 
-By default, it will send queued metrics every minute, and anytime the
-queue reaches 500 metrics. These settings can be configured on initialization.
+By default, it will send queued metrics every minute, but can be configured on initialization.
 
 ## Shutdown
 By default, any unsubmitted metrics on the queue will not be sent at shutdown.
