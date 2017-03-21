@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Added
+
+- `Aggregator` and `CounterCache` from `librato-rack` are now leveraged
+  to reduce the number of metrics submitted for a given flush. This will
+  reduce the total number of measurements submitted, and have a much lower
+  impact on Librato's rate limiting.
+
+### Removed
+
+- `count` is no longer supported as an initialization option. The queue is
+   only flushed based on the provided `interval`, or by calling `#stop`.
+
 ## 0.5.2
 
 ### Fixed
