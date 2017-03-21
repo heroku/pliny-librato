@@ -94,6 +94,21 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
 
       expect(librato_queue.queued).to eq(expected)
     end
+
+    it 'does not block on #submit' do
+      allow(backend).to receive(:librato_queue).and_return(librato_queue)
+      allow(librato_queue).to receive(:submit) { sleep 1 }
+
+      Thread.new do
+        backend.send(:flush_librato)
+      end
+
+      Timeout.timeout(1) do
+        backend.report_counts(requests: 1)
+        sleep 0.1
+        backend.report_counts(requests: 1)
+      end
+    end
   end
 
   describe '#start' do
