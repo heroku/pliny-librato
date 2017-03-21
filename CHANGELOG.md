@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 0.6.0
+
 ### Added
 
 - `Aggregator` and `CounterCache` from `librato-rack` are now leveraged
