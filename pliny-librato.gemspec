@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'librato-metrics', '~> 2.0'
   spec.add_dependency 'pliny',           '>= 0.20.0'
+  spec.add_dependency 'librato-rack',    '~> 2.0'
 
   spec.add_development_dependency 'bundler', '~> 1.13'
   spec.add_development_dependency 'pry', '~> 0.10'

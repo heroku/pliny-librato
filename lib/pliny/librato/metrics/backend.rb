@@ -1,5 +1,6 @@
 require 'librato/metrics'
 require 'pliny/error_reporters'
+require 'librato/collector'
 
 module Pliny
   module Librato
@@ -7,43 +8,45 @@ module Pliny
       # Implements the Pliny::Metrics.backends API. Puts any metrics sent
       # from Pliny::Metrics onto a queue that gets submitted in batches.
       class Backend
-        POISON_PILL = :'❨╯°□°❩╯︵┻━┻'
-
-        def initialize(source: nil, interval: 60, count: 500)
+        def initialize(source: nil, interval: 60)
           @interval      = interval
           @mutex         = Mutex.new
-          @metrics_queue = Queue.new
+          @counter_cache = ::Librato::Collector::CounterCache.new(default_tags: nil)
+          @aggregator    = ::Librato::Metrics::Aggregator.new
           @librato_queue = ::Librato::Metrics::Queue.new(
-            source:           source,
-            autosubmit_count: count
+            source: source,
+            skip_measurement_times: true
           )
         end
 
         def report_counts(counts)
-          metrics_queue.push(counts)
+          sync do
+            counts.each do |name, val|
+              counter_cache.increment(name, val)
+            end
+          end
         end
 
         def report_measures(measures)
-          metrics_queue.push(measures)
+          sync do
+            aggregator.add(measures)
+          end
         end
 
         def start
-          start_counter
           start_timer
           self
         end
 
         def stop
-          metrics_queue.push(POISON_PILL)
           # Ensure timer is not running when we terminate it
           sync { timer.terminate }
-          counter.join
           flush_librato
         end
 
         private
 
-        attr_reader :interval, :timer, :counter, :metrics_queue, :librato_queue
+        attr_reader :interval, :timer, :counter_cache, :aggregator, :librato_queue
 
         def start_timer
           @timer = Thread.new do
@@ -54,21 +57,13 @@ module Pliny
           end
         end
 
-        def start_counter
-          @counter = Thread.new do
-            loop do
-              msg = metrics_queue.pop
-              msg == POISON_PILL ? break : enqueue_librato(msg)
-            end
-          end
-        end
-
-        def enqueue_librato(msg)
-          sync { librato_queue.add(msg) }
-        end
-
         def flush_librato
-          sync { librato_queue.submit }
+          sync do
+            counter_cache.flush_to(librato_queue)
+            librato_queue.merge!(aggregator)
+            aggregator.clear
+          end
+          librato_queue.submit
         end
 
         def sync(&block)

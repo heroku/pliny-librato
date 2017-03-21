@@ -24,13 +24,18 @@ Or install it yourself as:
 
 ## Usage
 
-Add a new initializer `config/initializers/librato.rb`:
+Update (or add) your metrics initializer `config/initializers/metrics.rb` with:
 
 ```ruby
-Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
-librato_backend = Pliny::Librato::Metrics::Backend.new(source: "myapp.production")
-librato_backend.start
-Pliny::Metrics.backends << librato_backend
+if Config.librato_email && Config.librato_key
+  Librato::Metrics.authenticate(Config.librato_email, Config.librato_key)
+  Pliny::Metrics.backends = [Pliny::Librato::Metrics::Backend.new(
+    source: "#{Config.app_name}.#{Config.app_env}",
+    interval: 30
+  ).tap(&:start)]
+else
+  Pliny::Metrics.backends = [Pliny::Metrics::Backends::Logger]
+end
 ```
 
 Now `Pliny::Metrics` methods will build a queue and automatically send metrics
@@ -43,8 +48,7 @@ Pliny::Metrics.measure(:bar) do
 end
 ```
 
-By default, it will send queued metrics every minute, and anytime the
-queue reaches 500 metrics. These settings can be configured on initialization.
+By default, it will send queued metrics every minute, but can be configured on initialization.
 
 ## Shutdown
 By default, any unsubmitted metrics on the queue will not be sent at shutdown.
