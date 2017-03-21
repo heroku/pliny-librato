@@ -13,7 +13,10 @@ module Pliny
           @mutex         = Mutex.new
           @counter_cache = ::Librato::Collector::CounterCache.new(default_tags: nil)
           @aggregator    = ::Librato::Metrics::Aggregator.new
-          @librato_queue = ::Librato::Metrics::Queue.new(source: source)
+          @librato_queue = ::Librato::Metrics::Queue.new(
+            source: source,
+            skip_measurement_times: true
+          )
         end
 
         def report_counts(counts)
