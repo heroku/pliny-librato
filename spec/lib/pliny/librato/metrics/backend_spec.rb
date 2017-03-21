@@ -77,12 +77,12 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   end
 
   describe '#flush_librato' do
-    it 'grabs the counter and aggregator' do
+    it 'merges the counter_cache and aggregator' do
       allow(backend).to receive(:librato_queue).and_return(librato_queue)
       allow(librato_queue).to receive(:submit)
 
-      backend.report_counts(requests: { value: 1 })
-      backend.report_measures(request_time: { value: 10 })
+      backend.report_counts(requests: 1)
+      backend.report_measures(request_time: 10)
       backend.send(:flush_librato)
 
       expected = {
