@@ -40,6 +40,11 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
 
       backend.new_librato_queue
     end
+
+    it 'is configured to not autosubmit_check' do
+      autosubmit_check = !!backend.new_librato_queue.send(:autosubmit_check)
+      expect(autosubmit_check).to eq(false)
+    end
   end
 
   describe '#report_counts' do
