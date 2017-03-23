@@ -16,23 +16,30 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   end
 
   describe '#initialize' do
-    it 'creates a Librato::Metrics::Queue' do
-      expect(Librato::Metrics::Queue).to receive(:new).with(
-        source: source,
-        skip_measurement_times: true,
+    it 'creates a Librato::Collector::CounterCache' do
+      expect(Librato::Collector::CounterCache).to receive(:new).with(
+        default_tags: nil,
       ).and_call_original
 
-      expect(backend.send(:librato_queue))
-        .to be_an_instance_of(Librato::Metrics::Queue)
+      backend
     end
 
     it 'creates a Librato::Metrics::Aggregator' do
       expect(Librato::Metrics::Aggregator).to receive(:new).and_call_original
 
-      expect(backend.send(:librato_queue))
-        .to be_an_instance_of(Librato::Metrics::Queue)
+      backend
     end
+  end
 
+  describe '#new_librato_queue' do
+    it 'passes in the source and skip_measurement_times' do
+      expect(Librato::Metrics::Queue).to receive(:new).with(
+        source: source,
+        skip_measurement_times: true
+      )
+
+      backend.new_librato_queue
+    end
   end
 
   describe '#report_counts' do
@@ -53,7 +60,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
   describe '#report_measures' do
     before do
       allow(librato_queue).to receive(:merge!)
-      allow(backend).to receive(:librato_queue).and_return(librato_queue)
+      allow(backend).to receive(:new_librato_queue).and_return(librato_queue)
       backend.start
     end
 
@@ -78,7 +85,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
 
   describe '#flush_librato' do
     it 'merges the counter_cache and aggregator' do
-      allow(backend).to receive(:librato_queue).and_return(librato_queue)
+      allow(backend).to receive(:new_librato_queue).and_return(librato_queue)
       allow(librato_queue).to receive(:submit)
 
       backend.report_counts(requests: 1)
@@ -96,7 +103,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
     end
 
     it 'does not block on #submit' do
-      allow(backend).to receive(:librato_queue).and_return(librato_queue)
+      allow(backend).to receive(:new_librato_queue).and_return(librato_queue)
       allow(librato_queue).to receive(:submit) { sleep 1 }
 
       Thread.new do
@@ -113,7 +120,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
 
   describe '#start' do
     before do
-      allow(backend).to receive(:librato_queue).and_return(librato_queue)
+      allow(backend).to receive(:new_librato_queue).and_return(librato_queue)
       allow(librato_queue).to receive(:submit)
 
       allow(Thread).to receive(:new).and_call_original
@@ -131,7 +138,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
 
   describe '#stop' do
     before do
-      allow(backend).to receive(:librato_queue).and_return(librato_queue)
+      allow(backend).to receive(:new_librato_queue).and_return(librato_queue)
       backend.start
     end
 
@@ -146,7 +153,7 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
     let(:count)    { 500 }
 
     before do
-      allow(backend).to receive(:librato_queue).and_return(librato_queue)
+      allow(backend).to receive(:new_librato_queue).and_return(librato_queue)
       allow(librato_queue).to receive(:submit)
       backend.start
     end

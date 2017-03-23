@@ -9,11 +9,15 @@ module Pliny
       # from Pliny::Metrics onto a queue that gets submitted in batches.
       class Backend
         def initialize(source: nil, interval: 60)
+          @source        = source
           @interval      = interval
           @mutex         = Mutex.new
           @counter_cache = ::Librato::Collector::CounterCache.new(default_tags: nil)
           @aggregator    = ::Librato::Metrics::Aggregator.new
-          @librato_queue = ::Librato::Metrics::Queue.new(
+        end
+
+        def new_librato_queue
+          ::Librato::Metrics::Queue.new(
             source: source,
             skip_measurement_times: true
           )
@@ -46,7 +50,7 @@ module Pliny
 
         private
 
-        attr_reader :interval, :timer, :counter_cache, :aggregator, :librato_queue
+        attr_reader :source, :interval, :timer, :counter_cache, :aggregator
 
         def start_timer
           @timer = Thread.new do
@@ -58,12 +62,18 @@ module Pliny
         end
 
         def flush_librato
+          queue = new_librato_queue
+
           sync do
-            counter_cache.flush_to(librato_queue)
-            librato_queue.merge!(aggregator)
+            # Gather all counters / measures from the aggregator / counter_cache.
+            counter_cache.flush_to(queue)
+            queue.merge!(aggregator)
             aggregator.clear
           end
-          librato_queue.submit
+
+          # Submit explicitly, given the queue won't pass autosubmit_check
+          # (because @autosubmit_count=nil @autosubmit_interval=nil)
+          queue.submit
         end
 
         def sync(&block)
