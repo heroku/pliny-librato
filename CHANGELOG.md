@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 0.6.1
+
+### Fixes
+
+- Fixes a thread safety issue introduced in 0.6.0. [#13](https://github.com/heroku/pliny-librato/pull/13)
+
 ## 0.6.0
 
 ### Added
