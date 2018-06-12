@@ -167,5 +167,12 @@ RSpec.describe Pliny::Librato::Metrics::Backend do
       sleep 0.1
       expect(librato_queue).to have_received(:submit).at_least(1).times
     end
+
+    it 'continues flushing the queue when erroring' do
+      allow(librato_queue).to receive(:submit).and_raise(RuntimeError.new)
+
+      sleep 0.2
+      expect(librato_queue).to have_received(:submit).at_least(2).times
+    end
   end
 end

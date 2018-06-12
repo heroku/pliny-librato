@@ -56,7 +56,10 @@ module Pliny
           @timer = Thread.new do
             loop do
               sleep interval
-              flush_librato
+              begin
+                flush_librato
+              rescue # allow for periodic librato errors to recover
+              end
             end
           end
         end
