@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+## 0.6.2
+
+### Fixes
+
+- Rescue librato errors in timer thread [#14](https://github.com/heroku/pliny-librato/pull/14)
+
 ## 0.6.1
 
 ### Fixes
