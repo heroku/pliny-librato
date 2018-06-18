@@ -1,5 +1,6 @@
 require 'librato/metrics'
 require 'pliny/error_reporters'
+require 'pliny/log'
 require 'librato/collector'
 
 module Pliny
@@ -56,7 +57,9 @@ module Pliny
           @timer = Thread.new do
             loop do
               sleep interval
-              flush_librato
+              wrap_errors do
+                flush_librato
+              end
             end
           end
         end
@@ -77,9 +80,18 @@ module Pliny
         end
 
         def sync(&block)
-          @mutex.synchronize(&block)
+          wrap_errors do
+            @mutex.synchronize(&block)
+          end
+        end
+
+        def wrap_errors
+          yield
         rescue => error
-          Pliny::ErrorReporters.notify(error)
+          begin
+            Pliny::ErrorReporters.notify(error)
+          rescue
+          end
         end
       end
     end
